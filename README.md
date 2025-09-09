@@ -1,2 +1,175 @@
 # qr-productos
 codigo de prueba para una tarea
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema QR - Productos</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f4f4;
+    }
+    header {
+      background: #007BFF;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      background: #eee;
+      padding: 10px;
+    }
+    nav button {
+      margin: 0 10px;
+      padding: 10px 20px;
+      border: none;
+      background: #007BFF;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    nav button:hover {
+      background: #0056b3;
+    }
+    section {
+      display: none;
+      padding: 20px;
+      text-align: center;
+    }
+    section.active {
+      display: block;
+    }
+    #reader {
+      width: 300px;
+      margin: auto;
+    }
+    #result, #qrcode {
+      margin-top: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      display: inline-block;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 250px;
+      margin: 10px 0;
+    }
+    button.generar {
+      background: #28a745;
+    }
+    button.generar:hover {
+      background: #1e7e34;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Sistema QR - Productos</h1>
+  </header>
+
+  <nav>
+    <button onclick="mostrarSeccion('escaner')">📷 Escanear QR</button>
+    <button onclick="mostrarSeccion('generador')">🖨 Generar QR</button>
+  </nav>
+
+  <!-- Escáner -->
+  <section id="escaner" class="active">
+    <h2>Escanear Código QR</h2>
+    <p>Apunta tu cámara al código QR del producto</p>
+    <div id="reader"></div>
+    <div id="result">Esperando escaneo...</div>
+  </section>
+
+  <!-- Generador -->
+  <section id="generador">
+    <h2>Generador de Códigos QR</h2>
+    <p>Escribe el código del producto (ejemplo: <b>cuaderno123</b>)</p>
+    <input type="text" id="texto" placeholder="ID del producto">
+    <br>
+    <button class="generar" onclick="generarQR()">Generar QR</button>
+    <div id="qrcode"></div>
+  </section>
+
+  <script>
+    // -------- CAMBIO DE SECCIONES --------
+    function mostrarSeccion(id) {
+      document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    }
+
+    // -------- DATOS DE PRODUCTOS (ejemplo) --------
+    const productos = {
+      "cuaderno123": {
+        nombre: "Cuaderno Profesional",
+        precios: {
+          "Tienda A": "$35",
+          "Tienda B": "$32",
+          "Tienda C": "$38"
+        }
+      },
+      "lapiz456": {
+        nombre: "Lápiz HB",
+        precios: {
+          "Tienda A": "$5",
+          "Tienda B": "$4.50",
+          "Tienda C": "$6"
+        }
+      }
+    };
+
+    // -------- ESCÁNER QR --------
+    function onScanSuccess(decodedText) {
+      const resultDiv = document.getElementById("result");
+
+      if (productos[decodedText]) {
+        const prod = productos[decodedText];
+        let html = `<h3>${prod.nombre}</h3><ul style="text-align:left;">`;
+        for (let tienda in prod.precios) {
+          html += `<li><b>${tienda}:</b> ${prod.precios[tienda]}</li>`;
+        }
+        html += "</ul>";
+        resultDiv.innerHTML = html;
+      } else {
+        resultDiv.innerHTML = `<p>No se encontró información para: <b>${decodedText}</b></p>`;
+      }
+    }
+
+    function onScanFailure(error) {
+      // Errores normales mientras busca QR
+    }
+
+    const html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+      { facingMode: "environment" }, // cámara trasera
+      { fps: 10, qrbox: 250 },
+      onScanSuccess,
+      onScanFailure
+    );
+
+    // -------- GENERADOR QR --------
+    function generarQR() {
+      const contenedor = document.getElementById("qrcode");
+      contenedor.innerHTML = ""; // limpiar el anterior
+      const texto = document.getElementById("texto").value;
+      if (texto.trim() === "") {
+        alert("Escribe un identificador para generar el QR");
+        return;
+      }
+      new QRCode(contenedor, {
+        text: texto,
+        width: 200,
+        height: 200
+      });
+    }
+  </script>
+</body>
+</html>
